@@ -11,6 +11,7 @@
 #include <map>
 
 using namespace std;
+string root_path;
 
 void write_file_info(const string &path, int fd) {
     auto file_stat = new struct stat;
@@ -18,9 +19,9 @@ void write_file_info(const string &path, int fd) {
         perror("lstat");
         return;
     }
-    file_info file(file_stat, path);
+    file_info file(file_stat, path.substr(root_path.length()));
     write(fd, &file, sizeof(file_info) - sizeof(string));
-    write(fd, file.absolute_path.c_str(), file.absolute_path.length());
+    write(fd, file.relative_path.c_str(), file.relative_path.length());
 }
 
 void write_file(const string &path, int fd) {
@@ -55,12 +56,12 @@ void backup(const string &src, int dst_fd) {
                 perror("lstat");
                 return;
             }
-            file_info file(file_stat, new_src);
+            file_info file(file_stat, new_src.substr(root_path.length()));
             char buffer[4096];
             ssize_t len = readlink(new_src.c_str(), buffer, 4096);
             file.file_meta.size = len;
             write(dst_fd, &file, sizeof(file_info) - sizeof(string));
-            write(dst_fd, file.absolute_path.c_str(), file.absolute_path.length());
+            write(dst_fd, file.relative_path.c_str(), file.relative_path.length());
             write(dst_fd, buffer, len);
         } else if (src_dirent->d_type == DT_FIFO) {
             write_file_info(new_src, dst_fd);
@@ -71,24 +72,24 @@ void backup(const string &src, int dst_fd) {
                 perror("lstat");
                 return;
             }
-            file_info file(file_stat, new_src);
+            file_info file(file_stat, new_src.substr(root_path.length()));
             if (file.file_meta.nlink == 1) {
                 write(dst_fd, &file, sizeof(file_info) - sizeof(string));
-                write(dst_fd, file.absolute_path.c_str(), file.absolute_path.length());
+                write(dst_fd, file.relative_path.c_str(), file.relative_path.length());
                 write_file(new_src, dst_fd);
                 continue;
             }
             if (inode_map.count(file.file_meta.inode) == 0) {
                 //没有备份过
-                inode_map[file.file_meta.inode] = new_src;
+                inode_map[file.file_meta.inode] = new_src.substr(root_path.length());
                 write(dst_fd, &file, sizeof(file_info) - sizeof(string));
-                write(dst_fd, file.absolute_path.c_str(), file.absolute_path.length());
+                write(dst_fd, file.relative_path.c_str(), file.relative_path.length());
                 write_file(new_src, dst_fd);
             } else {
                 //已经备份过,文件内容改为路径
                 file.file_meta.size = inode_map[file.file_meta.inode].length();
                 write(dst_fd, &file, sizeof(file_info) - sizeof(string));
-                write(dst_fd, file.absolute_path.c_str(), file.absolute_path.length());
+                write(dst_fd, file.relative_path.c_str(), file.relative_path.length());
                 write(dst_fd, inode_map[file.file_meta.inode].c_str(), inode_map[file.file_meta.inode].length());
             }
         }
@@ -98,6 +99,7 @@ void backup(const string &src, int dst_fd) {
 
 
 //int main() {
+//    root_path = "/home/ztm/1/";
 //    int dst_fd = open("/home/ztm/2/backup", O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, 0644);
 //    backup("/home/ztm/1", dst_fd);
 //    close(dst_fd);
