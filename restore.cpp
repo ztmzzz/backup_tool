@@ -6,7 +6,10 @@
 #include <fcntl.h>
 #include <cstring>
 #include <unistd.h>
+#include <set>
 #include "file_info.h"
+
+set<ino_t> inode_set;
 
 void restore(string path) {
     int src_fd = open(path.c_str(), O_RDONLY);
@@ -25,8 +28,18 @@ void restore(string path) {
         mode_t temp_mode = temp_meta.mode;
         if (S_ISREG(temp_mode)) {
             //普通文件
-            char buff[temp_meta.size];
+            char buff[temp_meta.size + 1];
             read(src_fd, buff, temp_meta.size);
+            if (temp_meta.nlink > 1) {
+                if (inode_set.find(temp_meta.inode) != inode_set.end()) {
+                    //文件已经存在
+                    buff[temp_meta.size] = '\0';
+                    link(buff, temp_path.c_str());
+                    continue;
+                } else {
+                    inode_set.insert(temp_meta.inode);
+                }
+            }
             int dst_fd = open(temp_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, temp_mode);
             if (dst_fd == -1) {
                 cout << "open file error" << endl;
