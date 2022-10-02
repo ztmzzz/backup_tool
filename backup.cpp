@@ -7,44 +7,70 @@
 #include <dirent.h>
 #include <cstring>
 #include <unistd.h>
+#include "file_info.h"
 
 using namespace std;
 
-void backup(string src, string dst) {
-    mkdir(dst.c_str(), 0777);
+void write_file_info(const string &path, int fd) {
+    auto file_stat = new struct stat;
+    if (lstat(path.c_str(), file_stat) == -1) {
+        perror("lstat");
+        return;
+    }
+    file_info file(file_stat, path);
+    if (S_ISLNK(file.file_meta.mode)) {
+        char buffer[4096];
+        ssize_t len = readlink(path.c_str(), buffer, 4096);
+        file.file_meta.size = len;
+        write(fd, &file, sizeof(file_info) - sizeof(string));
+        write(fd, file.absolute_path.c_str(), file.absolute_path.length());
+        write(fd, buffer, len);
+        return;
+    }
+    write(fd, &file, sizeof(file_info) - sizeof(string));
+    write(fd, file.absolute_path.c_str(), file.absolute_path.length());
+}
+
+void write_file(const string &path, int fd) {
+    int src_fd = open(path.c_str(), O_RDONLY);
+    char buffer[1024];
+    ssize_t len;
+    while ((len = read(src_fd, buffer, 1024)) > 0) {
+        write(fd, buffer, len);
+    }
+    close(src_fd);
+}
+
+
+void backup(const string &src, int dst_fd) {
     DIR *src_dir = opendir(src.c_str());
+    if (src_dir == nullptr) {
+        return;
+    }
     struct dirent *src_dirent;
-    src_dirent = readdir(src_dir);
-    while (src_dirent != nullptr) {
+    while ((src_dirent = readdir(src_dir)) != nullptr) {
+        string new_src = src + "/" + src_dirent->d_name;
         if (src_dirent->d_type == DT_DIR) {
             if (strcmp(src_dirent->d_name, ".") == 0 || strcmp(src_dirent->d_name, "..") == 0) {
-                src_dirent = readdir(src_dir);
                 continue;
             }
-            string new_src = src + "/" + src_dirent->d_name;
-            string new_dst = dst + "/" + src_dirent->d_name;
-            mkdir(new_dst.c_str(), 0777);
-            backup(new_src, new_dst);
+            write_file_info(new_src, dst_fd);
+            backup(new_src, dst_fd);
+        } else if (src_dirent->d_type == DT_LNK) {
+            write_file_info(new_src, dst_fd);
+        } else if (src_dirent->d_type == DT_FIFO) {
+            write_file_info(new_src, dst_fd);
         } else {
-            string new_src = src + "/" + src_dirent->d_name;
-            string new_dst = dst + "/" + src_dirent->d_name;
-            int src_fd = open(new_src.c_str(), O_RDONLY);
-            int dst_fd = open(new_dst.c_str(), O_WRONLY | O_CREAT, 0777);
-            char buffer[1024];
-            ssize_t len;
-            while ((len = read(src_fd, buffer, 1024)) > 0) {
-                write(dst_fd, buffer, len);
-            }
-            close(src_fd);
-            close(dst_fd);
+            write_file_info(new_src, dst_fd);
+            write_file(new_src, dst_fd);
         }
-        src_dirent = readdir(src_dir);
     }
     closedir(src_dir);
-
 }
 
-
-int main() {
-    backup("/home/ztmzzz/1", "/home/ztmzzz/2");
-}
+//
+//int main() {
+//    int dst_fd = open("/home/ztm/2/backup", O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, 0644);
+//    backup("/home/ztm/1", dst_fd);
+//    close(dst_fd);
+//}
