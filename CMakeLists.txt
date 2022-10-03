@@ -6,4 +6,4 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 
 add_executable(backup_tool
-        backup.cpp file_info.cpp file_info.h utils.h compress.cpp compress.h)
+        backup.cpp file_info.h utils.h compress.cpp compress.h encrypt.h)
