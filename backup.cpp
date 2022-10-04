@@ -97,6 +97,15 @@ void backup(const string &src, int dst_fd) {
     closedir(src_dir);
 }
 
+void backup_file(const string &src, const string &dst) {
+    int dst_fd = open(dst.c_str(), O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, 0644);
+    if (dst_fd == -1) {
+        perror("open");
+        return;
+    }
+    backup(src, dst_fd);
+    close(dst_fd);
+}
 
 //int main() {
 //    root_path = "/home/ztm/1/";
