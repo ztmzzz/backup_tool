@@ -5,27 +5,24 @@
 #ifndef BACKUP_TOOL_FILE_INFO_H
 #define BACKUP_TOOL_FILE_INFO_H
 
-#include <sys/stat.h>
-#include <unistd.h>
-#include <iostream>
 #include <cstring>
 
 using namespace std;
 
 struct meta {
-    uid_t uid = 0;
-    gid_t gid = 0;
-    mode_t mode = 0;
-    ino_t inode = 0;
-    nlink_t nlink = 0;
-    timespec atime = {};
-    timespec mtime = {};
-    off_t size = 0;
+    uid_t uid = 0;//用户id
+    gid_t gid = 0;//组id
+    mode_t mode = 0;//文件权限
+    ino_t inode = 0;//文件索引节点号
+    nlink_t nlink = 0;//文件硬链接数
+    timespec atime = {};//文件最后访问时间
+    timespec mtime = {};//文件最后修改时间
+    off_t size = 0;//文件大小,若文件是软硬链接则为对应目录的长度
 };
 
 class file_info {
 public:
-    size_t size = 0;
+    size_t size = 0;//文件元信息的大小,即这个类的大小
     meta file_meta = {};
     string relative_path;
 
@@ -44,6 +41,12 @@ public:
         this->size = sizeof(file_info) - sizeof(string) + relative_path.length();
     }
 
+    /*!
+     * 从二进制中读取文件信息
+     * @param buffer 二进制
+     * @param size 二进制长度
+     * @return
+     */
     static file_info read_from_binary(char *buffer, size_t size) {
         file_info file{};
         file.size = size;

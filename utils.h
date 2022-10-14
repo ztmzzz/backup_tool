@@ -5,18 +5,10 @@
 #ifndef BACKUP_TOOL_UTILS_H
 #define BACKUP_TOOL_UTILS_H
 
-#endif //BACKUP_TOOL_UTILS_H
-
-#include <iostream>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <cstring>
-#include <unistd.h>
-#include <set>
-#include "file_info.h"
-#include <utime.h>
-#include <sys/types.h>
-
+/*!
+ * 递归创建文件夹
+ * @param path
+ */
 void mkdir_recursive(const string &path) {
     int len = path.length();
     char p[len];
@@ -34,3 +26,6 @@ void mkdir_recursive(const string &path) {
         mkdir(p, 0775);
     }
 }
+
+#endif //BACKUP_TOOL_UTILS_H
+

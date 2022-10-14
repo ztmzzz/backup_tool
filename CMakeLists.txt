@@ -12,7 +12,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 add_executable(backup_tool
-        backup.cpp file_info.h utils.h compress.cpp compress.h encrypt.h main.cpp mainwindow.cpp mainwindow.h restore.cpp)
+        backup.cpp file_info.h utils.h compress.cpp encrypt.h main.cpp mainwindow.cpp restore.cpp md5.cpp verify.h)
 target_link_libraries(backup_tool
         Qt::Core
         Qt::Gui

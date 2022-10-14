@@ -27,6 +27,8 @@ private slots:
 
     void on_restore_clicked();
 
+    void on_verify_clicked();
+
 private:
     Ui::MainWindow *ui;
 

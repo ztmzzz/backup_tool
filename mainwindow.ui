@@ -75,11 +75,22 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="backup">
-          <property name="text">
-           <string>备份</string>
-          </property>
-         </widget>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+                <item>
+                    <widget class="QPushButton" name="backup">
+                        <property name="text">
+                            <string>备份</string>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <widget class="QPushButton" name="verify">
+                        <property name="text">
+                            <string>验证</string>
+                        </property>
+                    </widget>
+                </item>
+            </layout>
         </item>
         <item>
          <widget class="QLabel" name="label_3">

@@ -5,13 +5,12 @@
 #ifndef BACKUP_TOOL_COMPRESS_H
 #define BACKUP_TOOL_COMPRESS_H
 
-#include <bitset>
 #include<iostream>
 #include <queue>
-#include <cstring>
 
 using namespace std;
 
+//哈夫曼编码
 struct node {
     unsigned char data;
     unsigned long long freq;//long只支持最大4G
@@ -30,8 +29,8 @@ struct compress_meta {
 class compress {
 private:
     priority_queue<node, vector<node>, greater<>> p;
-    node root;
-    compress_meta meta;
+    node root = {};//根节点
+    compress_meta meta = {};//压缩文件的元数据
 
     void generate_code(node *root_node, const string &str, string code[]);
 

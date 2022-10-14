@@ -5,17 +5,12 @@
 #ifndef BACKUP_TOOL_ENCRYPT_H
 #define BACKUP_TOOL_ENCRYPT_H
 
-#include <iostream>
-#include <string>
-#include <cstring>
-
-
 using namespace std;
 
-
+//RC4加密
 class encrypt {
 private:
-    unsigned char S[256];
+    unsigned char S[256]{};
 
     void encrypt_data(unsigned char *data, unsigned long long len) {
         int i = 0, j = 0, t;
@@ -33,7 +28,7 @@ private:
     }
 
 public:
-    encrypt(const string &key) {
+    explicit encrypt(const string &key) {
         unsigned char T[256];
         for (int i = 0; i < 256; i++) {
             S[i] = i;
@@ -47,6 +42,11 @@ public:
         }
     }
 
+    /*!
+     * 加密文件并保存到新文件
+     * @param src 源文件
+     * @param dst 加密文件
+     */
     void encrypt_file(const string &src, const string &dst) {
         FILE *fp = fopen(src.c_str(), "rb");
         FILE *fp2 = fopen(dst.c_str(), "wb");
